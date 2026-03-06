@@ -105,8 +105,59 @@ def generate_proposal(
         use_case=use_case,
     )
 
-    raw_response = call_gemini(module="module2_proposal_gen", prompt=prompt)
-    data = extract_json(raw_response)
+    raw_response = call_gemini(
+        module="module2_proposal_gen",
+        prompt=prompt,
+        temperature=0.2,
+        max_output_tokens=8192,
+    )
+    try:
+        data = extract_json(raw_response)
+    except ValueError:
+        # One-shot JSON repair fallback: ask Gemini to output corrected JSON only.
+        repair_prompt = f"""You are a JSON repair assistant.
+
+Task: Convert the following text into valid JSON that matches EXACTLY this schema:
+{{
+  "product_mix": [
+    {{
+      "product_name": "<string>",
+      "category": "<string>",
+      "sustainability_attributes": ["<string>", ...],
+      "quantity": <integer>,
+      "unit_price": <float>,
+      "total_price": <float>,
+      "reason": "<string>"
+    }}
+  ],
+  "budget_allocation": {{
+    "<category or product name>": <float>
+  }},
+  "estimated_cost_breakdown": {{
+    "subtotal": <float>,
+    "packaging": <float>,
+    "logistics": <float>,
+    "platform_fee": <float>,
+    "total": <float>
+  }},
+  "impact_summary": "<string>"
+}}
+
+Rules:
+- Output JSON only (no markdown, no code fences, no commentary).
+- Fix missing braces, commas, quotes, and any formatting issues.
+- Preserve all values as much as possible; do not invent extra fields.
+
+Text to repair:
+{raw_response}
+"""
+        repaired = call_gemini(
+            module="module2_proposal_json_repair",
+            prompt=repair_prompt,
+            temperature=0.0,
+            max_output_tokens=8192,
+        )
+        data = extract_json(repaired)
 
     # --- Map product_mix to typed models ---
     product_mix = [

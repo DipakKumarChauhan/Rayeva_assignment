@@ -11,7 +11,13 @@ genai.configure(api_key=settings.GEMINI_API_KEY)
 _model = genai.GenerativeModel(settings.GEMINI_MODEL)
 
 
-def call_gemini(module: str, prompt: str) -> str:
+def call_gemini(
+    module: str,
+    prompt: str,
+    *,
+    temperature: float = 0.3,
+    max_output_tokens: int = 8192,
+) -> str:
     """
     Send a prompt to Gemini and return the text response.
     All calls are logged automatically via AICallTimer.
@@ -20,8 +26,8 @@ def call_gemini(module: str, prompt: str) -> str:
         response = _model.generate_content(
             prompt,
             generation_config=genai.types.GenerationConfig(
-                temperature=0.3,
-                max_output_tokens=8192,  # Increased for larger proposal responses
+                temperature=temperature,
+                max_output_tokens=max_output_tokens,
             ),
         )
         timer.response = response.text
@@ -54,8 +60,15 @@ def extract_json(text: str) -> dict:
         try:
             return json.loads(json_str)
         except json.JSONDecodeError as e:
-            # Second attempt: try to fix common truncation issues
-            # If JSON appears incomplete, try to close it properly
+            # Second attempt: try to fix common JSON formatting issues
+            fixed_json = _try_fix_common_json_issues(json_str)
+            if fixed_json != json_str:
+                try:
+                    return json.loads(fixed_json)
+                except json.JSONDecodeError:
+                    pass
+
+            # Third attempt: try to fix common truncation issues (close missing braces/brackets)
             fixed_json = _try_fix_truncated_json(json_str)
             if fixed_json != json_str:
                 try:
@@ -94,6 +107,33 @@ def extract_json(text: str) -> dict:
     # If no match found, show truncated response for debugging
     truncated_text = text[:1000] + "..." if len(text) > 1000 else text
     raise ValueError(f"No valid JSON object found in AI response:\n{truncated_text}")
+
+
+def _try_fix_common_json_issues(json_str: str) -> str:
+    """
+    Attempt to fix common JSON issues seen in LLM outputs:
+    - Trailing commas before '}' or ']'
+    - Missing object close brace between array items (e.g. ... \"reason\": \"...\" , { ...)
+    - Missing comma between objects in arrays (e.g. } {)
+    Returns the original string if no changes are applied.
+    """
+    fixed = json_str
+
+    # Remove trailing commas before a closing bracket/brace: ", }" -> " }"
+    fixed = re.sub(r",(\s*[}\]])", r"\1", fixed)
+
+    # Common Gemini glitch in arrays of objects: missing "}" before next object
+    # Example:  ..."reason": "text" , { "product_name": ...
+    fixed = re.sub(
+        r'("reason"\s*:\s*"(?:[^"\\]|\\.)*")\s*,\s*\{',
+        r"\1}, {",
+        fixed,
+    )
+
+    # If two objects are adjacent without a comma: "} {"
+    fixed = re.sub(r"}\s*{", r"}, {", fixed)
+
+    return fixed
 
 
 def _try_fix_truncated_json(json_str: str) -> str:
