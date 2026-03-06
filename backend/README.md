@@ -1,8 +1,10 @@
-# AI Sustainable Commerce API
+# 🚀 AI Sustainable Commerce API
 
 **Role:** Full Stack / AI Intern | **Focus:** Applied AI for Sustainable Commerce
 
 A production-ready Python/FastAPI application implementing AI-powered modules for sustainable B2B commerce using the **Google Gemini API**.
+
+> **Note**: This is the backend API. For full-stack setup instructions, see the [root README](../README.md).
 
 ---
 
@@ -32,41 +34,48 @@ See [`architecture.md`](./architecture.md) for full design — intent routing, T
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-Dipak_assignment/
+backend/
 ├── .env.example            # Environment variable template
-├── requirements.txt        # Python dependencies
-├── architecture.md         # Module 3 & 4 architecture docs
+├── .gitignore             # Git ignore rules
+├── requirements.txt       # Python dependencies
+├── README.md              # This file
+├── architecture.md        # Module 3 & 4 architecture docs
 ├── app/
-│   ├── main.py             # FastAPI entry point
-│   ├── config.py           # Settings + predefined lists
-│   ├── database.py         # SQLite init + helpers
-│   ├── logger.py           # AI prompt/response logger
+│   ├── __init__.py
+│   ├── main.py            # FastAPI entry point & app setup
+│   ├── config.py          # Settings, env vars, predefined lists
+│   ├── database.py        # SQLite init, connection helpers
+│   ├── logger.py          # AI prompt/response logger
 │   ├── models/
-│   │   ├── product.py      # Module 1 Pydantic models
-│   │   └── proposal.py     # Module 2 Pydantic models
-│   ├── services/
-│   │   ├── gemini.py       # Gemini API client wrapper
-│   │   ├── categorizer.py  # Module 1 business logic
-│   │   └── proposal_gen.py # Module 2 business logic
-│   └── routers/
-│       ├── catalog.py      # Module 1 API endpoints
-│       └── proposals.py    # Module 2 API endpoints
+│   │   ├── __init__.py
+│   │   ├── product.py     # Module 1 Pydantic models
+│   │   └── proposal.py    # Module 2 Pydantic models
+│   ├── routers/
+│   │   ├── __init__.py
+│   │   ├── catalog.py     # Module 1 API endpoints
+│   │   └── proposals.py   # Module 2 API endpoints
+│   └── services/
+│       ├── __init__.py
+│       ├── gemini.py      # Gemini API client wrapper
+│       ├── categorizer.py # Module 1 business logic
+│       └── proposal_gen.py # Module 2 business logic
 └── tests/
-    ├── test_module1.py
-    └── test_module2.py
+    ├── __init__.py
+    ├── test_module1.py    # Module 1 tests
+    └── test_module2.py    # Module 2 tests
 ```
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ### 1. Clone & enter the project
 ```bash
-git clone <repo-url>
-cd Dipak_assignment
+git clone git@github.com:DipakKumarChauhan/Rayeva_assignment.git
+cd Rayeva_assignment/backend
 ```
 
 ### 2. Create and activate the virtual environment
@@ -105,11 +114,29 @@ Interactive docs (Swagger UI): **http://localhost:8000/docs**
 
 ---
 
-## API Reference
+## 📡 API Reference
+
+### Base URL
+```
+http://localhost:8000
+```
+
+### Interactive Documentation
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
 
 ### Health Check
-```
+```http
 GET /health
+```
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "service": "AI Sustainable Commerce API",
+  "version": "1.0.0"
+}
 ```
 
 ---
@@ -213,28 +240,50 @@ GET /api/v1/proposals/{proposal_id}
 
 ---
 
-## Running Tests
+## 🧪 Running Tests
 
 ```bash
-# Activate venv first
+# Make sure virtual environment is activated
 source venv/bin/activate
 
+# Run all tests
 python -m pytest tests/ -v
+
+# Run specific test file
+python -m pytest tests/test_module1.py -v
+python -m pytest tests/test_module2.py -v
+
+# Run with coverage (if pytest-cov installed)
+python -m pytest tests/ --cov=app --cov-report=html
 ```
 
-Tests use mocked Gemini responses — no real API calls needed.
+**Note**: Tests use mocked Gemini responses — no real API calls needed. All tests are designed to run offline.
 
 ---
 
-## Technical Design
+## 🏗️ Technical Design
+
+### Architecture Principles
 
 | Requirement | Implementation |
 |---|---|
-| Structured JSON outputs | Pydantic models + Gemini JSON-mode prompts |
-| Prompt + response logging | `ai_logs` SQLite table via `app/logger.py` |
-| Environment-based API key | `.env` loaded via `python-dotenv` in `config.py` |
-| Clear separation of AI & business logic | `services/` (AI) ↔ `routers/` (HTTP) ↔ `models/` (schema) |
-| Error handling & validation | Pydantic validation + `try/except` → HTTP 500 with detail |
+| **Structured JSON outputs** | Pydantic models + Gemini JSON-mode prompts with strict validation |
+| **Prompt + response logging** | `ai_logs` SQLite table via `app/logger.py` with latency tracking |
+| **Environment-based config** | `.env` loaded via `python-dotenv` in `config.py` |
+| **Separation of concerns** | `services/` (AI logic) ↔ `routers/` (HTTP) ↔ `models/` (schema) |
+| **Error handling** | Pydantic validation + `try/except` → HTTP 500 with detailed messages |
+| **JSON extraction** | Robust parsing that handles markdown code fences from AI responses |
+| **Database initialization** | Automatic schema creation on startup via `init_db()` |
+
+### Key Components
+
+- **`app/main.py`**: FastAPI app initialization, CORS setup, router registration
+- **`app/config.py`**: Centralized configuration with predefined categories and filters
+- **`app/database.py`**: SQLite connection management and schema initialization
+- **`app/logger.py`**: Context manager for automatic AI call logging
+- **`app/services/gemini.py`**: Gemini API wrapper with JSON extraction
+- **`app/services/categorizer.py`**: Module 1 business logic with validation
+- **`app/services/proposal_gen.py`**: Module 2 business logic with budget constraints
 
 ### Predefined Categories (Module 1)
 `Food & Beverage` · `Personal Care` · `Home & Living` · `Clothing & Apparel` · `Electronics` · `Stationery & Office` · `Fitness & Wellness` · `Pet Supplies` · `Baby & Kids` · `Outdoor & Garden`
@@ -290,10 +339,123 @@ CREATE TABLE proposals (
 
 ---
 
-## Environment Variables
+## ⚙️ Environment Variables
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `GEMINI_API_KEY` | ✅ Yes | — | Google Gemini API key |
+| `GEMINI_API_KEY` | ✅ Yes | — | Google Gemini API key ([Get one here](https://aistudio.google.com/app/apikey)) |
 | `DB_PATH` | No | `sustainable_commerce.db` | SQLite database file path |
-| `LOG_LEVEL` | No | `INFO` | Logging verbosity |
+| `LOG_LEVEL` | No | `INFO` | Logging verbosity (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
+
+### Creating `.env` File
+
+1. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` and add your Gemini API key:
+   ```env
+   GEMINI_API_KEY=your_actual_api_key_here
+   DB_PATH=sustainable_commerce.db
+   LOG_LEVEL=INFO
+   ```
+
+**⚠️ Important**: Never commit `.env` file to version control. It's already in `.gitignore`.
+
+---
+
+## 🔍 Debugging & Logging
+
+### AI Call Logs
+
+All AI interactions are automatically logged to the `ai_logs` table:
+
+```sql
+SELECT * FROM ai_logs ORDER BY created_at DESC LIMIT 10;
+```
+
+This includes:
+- Module name (e.g., `module1_categorizer`, `module2_proposal_gen`)
+- Full prompt sent to Gemini
+- Complete response received
+- Latency in milliseconds
+- Timestamp
+
+### Common Issues
+
+**Issue**: `Invalid JSON in AI response`
+- **Solution**: The JSON extraction has been improved to handle markdown code fences. If this persists, check the `raw_ai_response` field in the database.
+
+**Issue**: `GEMINI_API_KEY not found`
+- **Solution**: Ensure `.env` file exists in the `backend/` directory with your API key.
+
+**Issue**: Database locked errors
+- **Solution**: Ensure only one instance of the server is running, or use a different `DB_PATH`.
+
+---
+
+## 📊 Database Management
+
+### Viewing Data
+
+You can use any SQLite client or Python:
+
+```python
+import sqlite3
+
+conn = sqlite3.connect('sustainable_commerce.db')
+cursor = conn.cursor()
+
+# View all products
+cursor.execute("SELECT * FROM products")
+print(cursor.fetchall())
+
+# View all proposals
+cursor.execute("SELECT * FROM proposals")
+print(cursor.fetchall())
+
+# View AI logs
+cursor.execute("SELECT module, latency_ms, created_at FROM ai_logs ORDER BY created_at DESC LIMIT 10")
+print(cursor.fetchall())
+
+conn.close()
+```
+
+### Resetting Database
+
+To start fresh, simply delete the database file:
+```bash
+rm sustainable_commerce.db
+```
+
+The database will be automatically recreated on next server start.
+
+---
+
+## 🔗 Integration with Frontend
+
+The backend is configured with CORS to allow requests from the React frontend:
+
+- **Allowed Origins**: `*` (all origins)
+- **Allowed Methods**: All HTTP methods
+- **Allowed Headers**: All headers
+
+The frontend should be configured to point to `http://localhost:8000` (or your backend URL).
+
+---
+
+## 📚 Additional Resources
+
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Google Gemini API Docs](https://ai.google.dev/docs)
+- [Pydantic Documentation](https://docs.pydantic.dev/)
+- [SQLite Documentation](https://www.sqlite.org/docs.html)
+
+---
+
+## 🎯 Future Enhancements
+
+See [`architecture.md`](./architecture.md) for planned modules:
+- **Module 3**: AI Impact Reporting Generator
+- **Module 4**: AI WhatsApp Support Bot
