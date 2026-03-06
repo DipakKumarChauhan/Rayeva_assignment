@@ -71,7 +71,8 @@ Generate a detailed sustainable product procurement proposal with EXACTLY this J
 - Total Quantity Needed: {quantity_needed} units
 - Use Case: {use_case}
 
-Respond with JSON only — no prose, no markdown fences, no extra text.
+**CRITICAL**: Respond with ONLY valid JSON. No markdown code fences, no explanations, no prose before or after. 
+The JSON must be complete and properly closed. Ensure all arrays and objects are fully closed.
 """
 
 
