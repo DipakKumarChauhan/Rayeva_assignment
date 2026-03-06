@@ -2,6 +2,8 @@
 
 A full-stack AI-powered platform for sustainable B2B commerce, featuring intelligent product categorization and automated proposal generation using Google Gemini AI.
 
+**Video Demo**: [Watch here](https://drive.google.com/file/d/1VGcepij3H3syWTAY9XdXGIiYgApAnzNL/view?usp=sharing)
+
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115.6-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react)](https://react.dev/)
 [![Gemini AI](https://img.shields.io/badge/Gemini-2.5--Flash-4285F4?logo=google)](https://ai.google.dev/)
